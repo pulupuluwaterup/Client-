@@ -1,0 +1,11 @@
+
+enable_character=0
+enable_ride=0
+enable_remote=0
+
+role={
+	-- ROLETYPE
+	1=data/source/player/M2/Rust/M2.rust
+}
+
+horse=data/source/NPC_source/Horse/Horse_J3.rust
