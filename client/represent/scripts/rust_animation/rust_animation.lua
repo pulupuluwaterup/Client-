@@ -198,13 +198,16 @@ function UpdateCharacter(dwRustID,CharacterID)
 	frameData = CharacterObj.GetFrameData()
 	local upid,downid =  CharacterObj.GetAnimationBodyState()
 	local isLinking = CharacterObj.IsLinking()
-	if (upid == ANIMATION_UP_TYPE.UNKNOWN or upid == ANIMATION_UP_TYPE.NONE) or isLinking == false or frameData.bOnRide == false then
-		Instance.IsRustState = 1
-		Instance.isRust = 1
-	else
-		Instance.IsRustState = 0
+	if frameData.bSheathFlag == false or frameData.bFightState == true or (upid ~= ANIMATION_UP_TYPE.UNKNOWN and upid ~= ANIMATION_UP_TYPE.NONE) or
+		isLinking == true 
+	then
 		Instance.isRust = 0
+		Instance.IsRustState = 0
+	else
+		Instance.isRust = 1
+		Instance.IsRustState = 1
 	end
+	
 
 	if not frameData.bOnRide then
 		Instance.OnRide = 0 --非骑乘状态
@@ -243,11 +246,12 @@ function UpdateCharacter(dwRustID,CharacterID)
 		end
 
 
-		if (IsRustState(frameData.nMoveState) or Instance.MoveState == "SPRINT") and frameData.bFightState == false and Instance.IsRustState == 1 then
-			Instance.isRust = 1 
+		if ((Instance.MoveState == "SPRINT") or IsRustState(frameData.nMoveState)) and Instance.IsRustState == 1 then
+			Instance.isRust = 1
 		else
-			Instance.isRust = 0 
+			Instance.isRust = 0
 		end
+	
 	
 		--print("========================Character:更新角色参数========================")
 		Instance.InputDirection.x, Instance.InputDirection.y, Instance.InputDirection.z, Instance.InputDirection.w = CharacterObj.GetLogicDirection()
@@ -356,6 +360,7 @@ function UpdateCharacter(dwRustID,CharacterID)
 
 
 	elseif frameData.bOnRide then
+		
 		Instance.OnRide = 1 --骑乘状态
 		Instance.isRust = 0
 	end
@@ -592,6 +597,8 @@ function OnInit(eType, dwRustID, dwCharacterID)
     }
 	Instance = RustInstances[dwRustID]
 	CharacterObj = GetLocalCharacter()
+	frameData = CharacterObj.GetFrameData()
+
 	if not CharacterObj then
 		return nil
 	end
@@ -599,7 +606,10 @@ function OnInit(eType, dwRustID, dwCharacterID)
 	if  RustInstances[dwRustID].objectType == RUST_ANIMATION_OBJECT_TYPE.CHARACTER then
 		CharacterParamsOnInit(Instance,dwRustID)
 	elseif RustInstances[dwRustID].objectType == RUST_ANIMATION_OBJECT_TYPE.RIDE then
-		RideObj = CharacterObj.GetRide()  -- 获取坐骑对象
+		if frameData.bOnRide then
+			RideObj = CharacterObj.GetRide()  
+		end
+		
 		if not RideObj then
 			return nil
 		end
@@ -618,6 +628,9 @@ end
 function OnUpdate(eType, dwRustID, dwCharacterID)
 	deltaTime = GetTime() - GetTimeLast()
 	Instance = RustInstances[dwRustID]
+	CharacterObj = GetLocalCharacter()
+	frameData = CharacterObj.GetFrameData()
+
 	if not Instance then 
 		return nil
 	end
@@ -626,8 +639,11 @@ function OnUpdate(eType, dwRustID, dwCharacterID)
 		UpdateCharacter(dwRustID,CharacterID)
 	end
 	if Instance.objectType == RUST_ANIMATION_OBJECT_TYPE.RIDE then
-		UpdateRide(dwRustID,CharacterID)
-		Instance.isRust = 0
+
+		if frameData.bOnRide then
+			UpdateRide(dwRustID,CharacterID)
+		end
+		
 	end
 end
 
